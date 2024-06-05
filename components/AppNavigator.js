@@ -2,8 +2,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './HomeScreen'; // This will be your new entry screen
-import GraphScreen from './GraphScreen'; // This is your current App component
+import HomeScreen from './HomeScreen'; 
+import GraphScreen from './GraphScreen';
 
 const Stack = createStackNavigator();
 
