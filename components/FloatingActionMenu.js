@@ -1,43 +1,36 @@
-import { style } from 'd3';
 import React, { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import { FAB, Portal, Menu, Provider, PaperProvider } from 'react-native-paper';
+import { View, StyleSheet } from 'react-native';
+import { FAB, Portal, PaperProvider } from 'react-native-paper';
 
 const FloatingActionMenu = ({ onNewTopicPress, onAddLinkPress }) => {
-  const [state, setState] = React.useState({ open: false });
+  const [state, setState] = useState({ open: false });
   const onStateChange = ({ open }) => setState({ open });
   const { open } = state;
 
   return (
     <PaperProvider>
       <Portal>
-        <FAB.Group
-          open={open}
-          visible={true}
-          icon={open ? 'close' : 'plus'}
-          // style={styles.fab}
-          actions={[
-            { icon: 'plus', label: 'Topic', onPress: onNewTopicPress },
-            { icon: 'link', label: 'Link', onPress: onAddLinkPress },
-          ]}
-          onStateChange={onStateChange}
-          onPress={() => { 
-            if (open) {
-              // could do something if the speed dial is open
-            }
-          }
-        } />
+        <View style={{ ...StyleSheet.absoluteFillObject, pointerEvents: open ? 'auto' : 'box-none' }}>
+          <FAB.Group
+            open={open}
+            visible={true}
+            icon={open ? 'close' : 'plus'}
+            actions={[
+              { icon: 'circle-outline', onPress: onNewTopicPress },
+              { icon: 'arrow-top-right-thin', onPress: onAddLinkPress },
+            ]}
+            onStateChange={onStateChange}
+            backdropColor="rgba(0, 0, 0, 0.0)" // Semi-transparent backdrop
+            onPress={() => {
+              if (open) {
+                // could do something if the speed dial is open
+              }
+            }}
+          />
+        </View>
       </Portal>
     </PaperProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  fab: {
-    position: 'absolute',
-    right: 16,
-    backgroundColor: '#6200ee',
-  },
-});
 
 export default FloatingActionMenu;

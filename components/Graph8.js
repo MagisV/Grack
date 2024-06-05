@@ -97,7 +97,6 @@ const Graph = ({ data }) => {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
       <GestureDetector gesture={Gesture.Simultaneous(panGesture, pinchGesture)}>
         <Animated.View style={[{ flex: 1 }, animatedStyle]}>
           <Svg width={width} height={height} viewBox={calculateViewBox()}>
@@ -137,7 +136,6 @@ const Graph = ({ data }) => {
           </Svg>
         </Animated.View>
       </GestureDetector>
-    </GestureHandlerRootView>
   );
 };
 
