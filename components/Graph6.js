@@ -2,8 +2,17 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Dimensions } from 'react-native';
 import Svg, { Circle, Line, Text as SvgText } from 'react-native-svg';
 import * as d3 from 'd3';
-import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import {
+  GestureHandlerRootView,
+  GestureDetector,
+  Gesture,
+  PinchGestureHandler,
+} from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+} from 'react-native-reanimated';
 
 const Graph = ({ data }) => {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
@@ -23,7 +32,7 @@ const Graph = ({ data }) => {
   useEffect(() => {
     if (!simulationRef.current) {
       simulationRef.current = d3.forceSimulation(data.nodes)
-        .force('link', d3.forceLink(data.links).id(d => d.id).distance(100))
+        .force('link', d3.forceLink(data.links).id((d) => d.id).distance(100))
         .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(0, 0))
         .force('collide', d3.forceCollide(20))
@@ -46,31 +55,52 @@ const Graph = ({ data }) => {
     };
   }, [data]);
 
-  const panGesture = Gesture.Pan()
-    .onUpdate((event) => {
-      translateX.value = lastTranslateX.value + event.translationX;
-      translateY.value = lastTranslateY.value + event.translationY;
-    })
-    .onEnd(() => {
-      lastTranslateX.value = translateX.value;
-      lastTranslateY.value = translateY.value;
-    });
+  const focalX = useSharedValue(0);
+  const focalY = useSharedValue(0);
+  const xCurrent = useSharedValue(0);
+  const yCurrent = useSharedValue(0);
+  const scaleCurrent = useSharedValue(1);
 
-  const pinchGesture = Gesture.Pinch()
-    .onUpdate((event) => {
-      console.log(event)
-      scale.value = Math.min(maxScale, Math.max(minScale, lastScale.value * event.scale));
-    })
-    .onEnd(() => {
-      lastScale.value = scale.value;
-    });
+  const pinchHandler = useAnimatedGestureHandler({
+    onStart: (event) => {
+      if (event.numberOfPointers === 2) {
+        focalX.value = event.focalX;
+        focalY.value = event.focalY;
+      }
+    },
+    onActive: (event) => {
+      if (event.numberOfPointers === 2) {
+        if (event.oldState === 2) {
+          focalX.value = event.focalX;
+          focalY.value = event.focalY;
+        }
+        scaleCurrent.value = event.scale;
+
+        xCurrent.value = (1 - scaleCurrent.value) * (focalX.value - width / 2);
+        yCurrent.value = (1 - scaleCurrent.value) * (focalY.value - height / 2);
+      }
+    },
+    onEnd: () => {
+      lastScale.value *= scaleCurrent.value;
+
+      lastTranslateX.value = scaleCurrent.value * lastTranslateX.value + xCurrent.value;
+      lastTranslateY.value = scaleCurrent.value * lastTranslateY.value + yCurrent.value;
+
+      xCurrent.value = 0;
+      yCurrent.value = 0;
+      scaleCurrent.value = 1;
+    },
+  });
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
+        { translateX: xCurrent.value },
+        { translateY: yCurrent.value },
+        { scale: scaleCurrent.value },
+        { translateX: lastTranslateX.value },
+        { translateY: lastTranslateY.value },
+        { scale: lastScale.value },
       ],
     };
   });
@@ -79,10 +109,10 @@ const Graph = ({ data }) => {
     if (graph.nodes.length === 0) return `0 0 ${width} ${height}`;
 
     const padding = 50;
-    const minX = Math.min(...graph.nodes.map(node => node.x)) - padding;
-    const minY = Math.min(...graph.nodes.map(node => node.y)) - padding;
-    const maxX = Math.max(...graph.nodes.map(node => node.x)) + padding;
-    const maxY = Math.max(...graph.nodes.map(node => node.y)) + padding;
+    const minX = Math.min(...graph.nodes.map((node) => node.x)) - padding;
+    const minY = Math.min(...graph.nodes.map((node) => node.y)) - padding;
+    const maxX = Math.max(...graph.nodes.map((node) => node.x)) + padding;
+    const maxY = Math.max(...graph.nodes.map((node) => node.y)) + padding;
     const viewBoxWidth = maxX - minX;
     const viewBoxHeight = maxY - minY;
 
@@ -91,13 +121,9 @@ const Graph = ({ data }) => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <GestureDetector gesture={Gesture.Simultaneous(panGesture, pinchGesture)}>
+      <PinchGestureHandler onGestureEvent={pinchHandler}>
         <Animated.View style={[{ flex: 1 }, animatedStyle]}>
-          <Svg
-            width={width}
-            height={height}
-            viewBox={calculateViewBox()}
-          >
+          <Svg width={width} height={height} viewBox={calculateViewBox()}>
             {graph.links.map((link, index) => (
               <Line
                 key={index}
@@ -133,7 +159,7 @@ const Graph = ({ data }) => {
             ))}
           </Svg>
         </Animated.View>
-      </GestureDetector>
+      </PinchGestureHandler>
     </GestureHandlerRootView>
   );
 };
