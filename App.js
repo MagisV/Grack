@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, TextInput, View, Modal, Button as NativeButton } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { Button } from 'react-native-paper';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Graph from './components/Graph8';
 import FloatingActionMenu from './components/FloatingActionMenu';
+import CustomModal from './components/CustomModal';
 
 const initialData = {
   nodes: [
@@ -67,50 +66,20 @@ const App = () => {
       <SafeAreaView style={styles.container}>
         <Graph data={data} />
 
-        <Modal visible={modalVisible} animationType="slide" transparent={true}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              {modalType === 'newTopic' ? (
-                <>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="New Node"
-                    value={newNodeName}
-                    onChangeText={setNewNodeName}
-                  />
-                  <Button mode="contained" onPress={addNode}>Add Node</Button>
-                </>
-              ) : (
-                <>
-                  <Picker
-                    selectedValue={newLinkSource}
-                    style={styles.picker}
-                    onValueChange={(itemValue) => setNewLinkSource(itemValue)}
-                  >
-                    <Picker.Item label="Select Source Node" value="" />
-                    {sortedNodes.map((node) => (
-                      <Picker.Item key={node.id} label={node.name} value={node.id} />
-                    ))}
-                  </Picker>
-
-                  <Picker
-                    selectedValue={newLinkTarget}
-                    style={styles.picker}
-                    onValueChange={(itemValue) => setNewLinkTarget(itemValue)}
-                  >
-                    <Picker.Item label="Select Target Node" value="" />
-                    {sortedNodes.map((node) => (
-                      <Picker.Item key={node.id} label={node.name} value={node.id} />
-                    ))}
-                  </Picker>
-
-                  <Button mode="contained" onPress={addLink}>Add Link</Button>
-                </>
-              )}
-              <NativeButton title="Cancel" onPress={closeModal} />
-            </View>
-          </View>
-        </Modal>
+        <CustomModal
+          visible={modalVisible}
+          modalType={modalType}
+          newNodeName={newNodeName}
+          setNewNodeName={setNewNodeName}
+          newLinkSource={newLinkSource}
+          setNewLinkSource={setNewLinkSource}
+          newLinkTarget={newLinkTarget}
+          setNewLinkTarget={setNewLinkTarget}
+          sortedNodes={sortedNodes}
+          onAddNode={addNode}
+          onAddLink={addLink}
+          onClose={closeModal}
+        />
 
         <FloatingActionMenu
           onNewTopicPress={() => openModal('newTopic')}
@@ -125,30 +94,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    marginBottom: 10,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
   },
 });
 
