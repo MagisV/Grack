@@ -20,7 +20,7 @@ const FloatingActionMenu = ({ onNewTopicPress, onAddLinkPress }) => {
               { icon: 'arrow-top-right-thin', onPress: onAddLinkPress },
             ]}
             onStateChange={onStateChange}
-            backdropColor="rgba(0, 0, 0, 0.0)" // Semi-transparent backdrop
+            backdropColor="rgba(0, 0, 0, 0.0)"
             onPress={() => {
               if (open) {
                 // could do something if the speed dial is open
