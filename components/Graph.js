@@ -1,12 +1,13 @@
+// Graph.js
 import React, { useEffect, useState, useRef } from 'react';
 import { Dimensions } from 'react-native';
 import Svg, { Circle, Line, Text as SvgText } from 'react-native-svg';
 import * as d3 from 'd3';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
-const Graph = ({ data }) => {
-  const [graph, setGraph] = useState({ nodes: [], links: [] });
+const Graph = ({ graph }) => {
+  const [d3Graph, setD3Graph] = useState({ nodes: [], links: [] });
   const simulationRef = useRef(null);
   const { width, height } = Dimensions.get('window');
 
@@ -23,20 +24,20 @@ const Graph = ({ data }) => {
 
   useEffect(() => {
     if (!simulationRef.current) {
-      simulationRef.current = d3.forceSimulation(data.nodes)
-        .force('link', d3.forceLink(data.links).id((d) => d.id).distance(100))
+      simulationRef.current = d3.forceSimulation(graph.nodes)
+        .force('link', d3.forceLink(graph.links).id((d) => d.id).distance(100))
         .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(0, 0))
         .force('collide', d3.forceCollide(20))
         .on('tick', () => {
-          setGraph({
+          setD3Graph({
             nodes: [...simulationRef.current.nodes()],
             links: [...simulationRef.current.force('link').links()],
           });
         });
     } else {
-      simulationRef.current.nodes(data.nodes);
-      simulationRef.current.force('link').links(data.links);
+      simulationRef.current.nodes(graph.nodes);
+      simulationRef.current.force('link').links(graph.links);
       simulationRef.current.alpha(0.3).restart();
     }
 
@@ -45,7 +46,7 @@ const Graph = ({ data }) => {
         simulationRef.current.stop();
       }
     };
-  }, [data]);
+  }, [graph]);
 
   const panGesture = Gesture.Pan()
     .minDistance(1)
@@ -77,14 +78,13 @@ const Graph = ({ data }) => {
   });
 
   const calculateViewBoxDimensions = () => {
-
-    if (graph.nodes.length === 0) return { minX: 0, minY: 0, viewBoxWidth: width, viewBoxHeight: height };
+    if (d3Graph.nodes.length === 0) return { minX: 0, minY: 0, viewBoxWidth: width, viewBoxHeight: height };
 
     const padding = 50;
-    const minX = Math.min(...graph.nodes.map((node) => node.x)) - padding;
-    const minY = Math.min(...graph.nodes.map((node) => node.y)) - padding;
-    const maxX = Math.max(...graph.nodes.map((node) => node.x)) + padding;
-    const maxY = Math.max(...graph.nodes.map((node) => node.y)) + padding;
+    const minX = Math.min(...d3Graph.nodes.map((node) => node.x)) - padding;
+    const minY = Math.min(...d3Graph.nodes.map((node) => node.y)) - padding;
+    const maxX = Math.max(...d3Graph.nodes.map((node) => node.x)) + padding;
+    const maxY = Math.max(...d3Graph.nodes.map((node) => node.y)) + padding;
     const viewBoxWidth = maxX - minX;
     const viewBoxHeight = maxY - minY;
 
@@ -97,45 +97,45 @@ const Graph = ({ data }) => {
   };
 
   return (
-      <GestureDetector gesture={Gesture.Simultaneous(panGesture, pinchGesture)}>
-        <Animated.View style={[{ flex: 1 }, animatedStyle]}>
-          <Svg width={width} height={height} viewBox={calculateViewBox()}>
-            {graph.links.map((link, index) => (
-              <Line
-                key={index}
-                x1={link.source.x}
-                y1={link.source.y}
-                x2={link.target.x}
-                y2={link.target.y}
-                stroke="#999"
-              />
-            ))}
-            {graph.nodes.map((node, index) => (
-              <Circle
-                key={index}
-                cx={node.x}
-                cy={node.y}
-                r={10}
-                fill="#69b3a2"
-                onPress={() => alert(`Node ${node.name} pressed`)}
-              />
-            ))}
-            {graph.nodes.map((node, index) => (
-              <SvgText
-                key={index}
-                x={node.x}
-                y={node.y}
-                fontSize="10"
-                fill="#333"
-                textAnchor="middle"
-                dy={-15}
-              >
-                {node.name}
-              </SvgText>
-            ))}
-          </Svg>
-        </Animated.View>
-      </GestureDetector>
+    <GestureDetector gesture={Gesture.Simultaneous(panGesture, pinchGesture)}>
+      <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+        <Svg width={width} height={height} viewBox={calculateViewBox()}>
+          {d3Graph.links.map((link, index) => (
+            <Line
+              key={index}
+              x1={link.source.x}
+              y1={link.source.y}
+              x2={link.target.x}
+              y2={link.target.y}
+              stroke="#999"
+            />
+          ))}
+          {d3Graph.nodes.map((node, index) => (
+            <Circle
+              key={index}
+              cx={node.x}
+              cy={node.y}
+              r={10}
+              fill="#69b3a2"
+              onPress={() => alert(`Node ${node.name} pressed`)}
+            />
+          ))}
+          {d3Graph.nodes.map((node, index) => (
+            <SvgText
+              key={index}
+              x={node.x}
+              y={node.y}
+              fontSize="10"
+              fill="#333"
+              textAnchor="middle"
+              dy={-15}
+            >
+              {node.name}
+            </SvgText>
+          ))}
+        </Svg>
+      </Animated.View>
+    </GestureDetector>
   );
 };
 

@@ -1,10 +1,10 @@
 import * as SQLite from 'expo-sqlite';
 import { insertConversation, insertLink, insertNode, deleteAll, count, getAll, createGraph, getGraph, getAllGraphs } from './CRUD';
-import { CONVERSATION, LINK, NODE } from '../constants';
+import { CONVERSATION, RE_SEED } from '../constants';
 
 const conversations = [
     { id: '1', name: 'Conversation 1', data: { nodes: [{ id: '1', name: 'Node A1' }, { id: '2', name: 'Node B1' }], links: [{ source: '1', target: '2' }] } },
-    { id: '2', name: 'Conversation 2', data: { nodes: [{ id: '1', name: 'Node A2' }, { id: '2', name: 'Node B2' }], links: [{ source: '1', target: '2' }] } },
+    { id: '2', name: 'Conversation 5', data: { nodes: [{ id: '1', name: 'Node A2' }, { id: '2', name: 'Node B2' }], links: [{ source: '1', target: '2' }] } },
     { 
       id: '3', 
       name: 'Conversation 3', 
@@ -41,7 +41,8 @@ const isDatabaseEmpty = async (db) => {
 }
 
 export const seedDatabase = async (db) => {
-    if (await isDatabaseEmpty(db)) {
+    if (RE_SEED || await isDatabaseEmpty(db)) {
+        await deleteAll(db);
         console.log('Seeding database');
         const ids = []
         for (const graph of conversations) {
