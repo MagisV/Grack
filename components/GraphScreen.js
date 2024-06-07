@@ -7,7 +7,7 @@ import FloatingActionMenu from './FloatingActionMenu';
 import CustomModal from './CustomModal';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSQLiteContext } from 'expo-sqlite';
-import { getGraph } from '../database/CRUD';
+import { getGraph, insertLink, insertNode } from '../database/CRUD';
 
 const GraphScreen = ({ route }) => {
   const { conversationId } = route.params;
@@ -55,24 +55,39 @@ const GraphScreen = ({ route }) => {
     setNewLinkTarget('');
   };
 
-  const addNode = () => {
+  const addNode = async () => {
     if (newNodeName.trim() !== '') {
-      const newNodeId = (graph.nodes.length + 1).toString();
-      setGraph(prevGraph => ({
-        ...prevGraph,
-        nodes: [...prevGraph.nodes, { id: newNodeId, name: newNodeName.trim() }]
-      }));
-      closeModal();
+      try {
+        const newNodeId = await insertNode(db, conversationId, newNodeName.trim());
+        if (newNodeId) {
+          setGraph(prevGraph => ({
+            ...prevGraph,
+            nodes: [...prevGraph.nodes, { id: newNodeId.toString(), name: newNodeName.trim() }]
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to add node', error);
+      } finally {
+        closeModal();
+      }
     }
   };
 
-  const addLink = () => {
+  const addLink = async () => {
     if (newLinkSource !== '' && newLinkTarget !== '') {
-      setGraph(prevGraph => ({
-        ...prevGraph,
-        links: [...prevGraph.links, { source: newLinkSource, target: newLinkTarget }]
-      }));
-      closeModal();
+      try {
+        const newLinkId = await insertLink(db, conversationId, newLinkSource, newLinkTarget);
+        if (newLinkId) {
+          setGraph(prevGraph => ({
+            ...prevGraph,
+            links: [...prevGraph.links, { source: newLinkSource, target: newLinkTarget }]
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to add link', error);
+      } finally {
+        closeModal();
+      }
     }
   };
 

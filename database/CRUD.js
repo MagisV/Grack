@@ -29,7 +29,7 @@ export const insertNode = async (db, graphId, name) => {
       // console.log('Adding node');
       const result = insertNode.executeAsync({ $graphId: graphId, $name: name });
       const nodeId = (await result).lastInsertRowId;
-      // console.log('Inserted node', nodeId, (await result).changes);
+      console.log('Inserted node', nodeId, (await result).changes);
       return nodeId;
   } catch (error) {
       console.log('Error adding node: ', error);
@@ -48,7 +48,7 @@ export const insertLink = async (db, graphId, sourceNodeId, targetNodeId) => {
       // console.log('Adding link');
       const result = insertLink.executeAsync({ $graphId: graphId, $sourceNodeId: sourceNodeId, $targetNodeId: targetNodeId });
       const linkId = (await result).lastInsertRowId;
-      // console.log('Inserted link', linkId, (await result).changes);
+      console.log('Inserted link', linkId, (await result).changes);
       return linkId;
   } catch (error) {
       console.log('Error adding link: ', error);
