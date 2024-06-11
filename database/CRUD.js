@@ -1,4 +1,3 @@
-import { link } from 'd3-shape';
 import { CONVERSATION, NODE, LINK } from '../constants';
 
 export const insertConversation = async (db, name) => {

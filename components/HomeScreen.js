@@ -1,9 +1,10 @@
 // HomeScreen.js
 import { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite'
-import { getAll } from '../database/CRUD';
+import { useSQLiteContext } from 'expo-sqlite';
+import { getAll, insertConversation } from '../database/CRUD';
 import { CONVERSATION } from '../constants';
+import { PaperProvider, FAB } from 'react-native-paper';
 
 const HomeScreen = ({ navigation }) => {
   const db = useSQLiteContext();
@@ -24,41 +25,38 @@ const HomeScreen = ({ navigation }) => {
     fetchConversations();
   }, [db]);
 
+  const handleAddConversation = async () => {
+    const newConversationId = await insertConversation(db, 'New Conversation');
+    if (newConversationId) {
+      setConversations([...conversations, { id: newConversationId, name: 'New Conversation' }]);
+      navigation.navigate('Graph', { conversationId: newConversationId });
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={conversations}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => navigation.navigate('Graph', { conversationId: item.id })}
-          >
-            <Text style={styles.itemText}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+    <PaperProvider>
+      <View style={styles.container}>
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.item}
+              onPress={() => navigation.navigate('Graph', { conversationId: item.id })}
+            >
+              <Text style={styles.itemText}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+        <FAB
+          style={styles.fab}
+          icon="plus"
+          onPress={handleAddConversation}
+        />
+      </View>
+    </PaperProvider>
   );
 };
-
-//   return (
-//     <View style={styles.container}>
-//       <FlatList
-//         data={conversations}
-//         keyExtractor={(item) => item.id}
-//         renderItem={({ item }) => (
-//           <TouchableOpacity
-//             style={styles.item}
-//             onPress={() => navigation.navigate('Graph', { conversationId: item.id, initialData: item.data })}
-//           >
-//             <Text style={styles.itemText}>{item.name}</Text>
-//           </TouchableOpacity>
-//         )}
-//       />
-//     </View>
-//   );
-// };
 
 const styles = StyleSheet.create({
   container: {
@@ -73,6 +71,13 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 18,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#6200ee',
   },
 });
 

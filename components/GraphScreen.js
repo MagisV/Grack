@@ -8,6 +8,7 @@ import CustomModal from './CustomModal';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getGraph, insertLink, insertNode } from '../database/CRUD';
+import { startRecording, stopRecording } from './AudioRecorder';
 
 const GraphScreen = ({ route }) => {
   const { conversationId } = route.params;
@@ -19,6 +20,7 @@ const GraphScreen = ({ route }) => {
   const [newLinkTarget, setNewLinkTarget] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
     const fetchGraphData = async () => {
@@ -91,6 +93,18 @@ const GraphScreen = ({ route }) => {
     }
   };
 
+  const toggleRecording = () => {
+    setIsRecording(prevState => !prevState);
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  // helper to log the state of isRecording
+  useEffect(() => {console.log('isRecording:', isRecording);}, [isRecording]);
+
   const sortedNodes = [...graph.nodes].sort((a, b) => a.name.localeCompare(b.name));
 
   if (loading) {
@@ -131,6 +145,8 @@ const GraphScreen = ({ route }) => {
         <FloatingActionMenu
           onNewTopicPress={() => openModal('newTopic')}
           onAddLinkPress={() => openModal('addLink')}
+          onToggleRecordPress={toggleRecording}
+          isRecording={isRecording}
         />
       </SafeAreaView>
       </GestureHandlerRootView>

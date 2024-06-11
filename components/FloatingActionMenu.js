@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { FAB, Portal, PaperProvider } from 'react-native-paper';
 
-const FloatingActionMenu = ({ onNewTopicPress, onAddLinkPress }) => {
+const FloatingActionMenu = ({ onNewTopicPress, onAddLinkPress, onToggleRecordPress, isRecording }) => {
   const [state, setState] = useState({ open: false });
   const onStateChange = ({ open }) => setState({ open });
   const { open } = state;
@@ -18,6 +18,7 @@ const FloatingActionMenu = ({ onNewTopicPress, onAddLinkPress }) => {
             actions={[
               { icon: 'circle-outline', onPress: onNewTopicPress },
               { icon: 'arrow-top-right-thin', onPress: onAddLinkPress },
+              { icon: isRecording ? 'stop' : 'record', onPress: onToggleRecordPress },
             ]}
             onStateChange={onStateChange}
             backdropColor="rgba(0, 0, 0, 0.0)"
